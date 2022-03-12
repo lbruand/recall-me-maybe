@@ -9,7 +9,7 @@ import math
 import itertools
 
 def build_waffle_matrix(size, 
-						confusion_matrix):
+						cm):
     rows, cols = size
     hmap = np.ones( (rows, cols) )
     tn, fp, fn, tp = cm.ravel()
