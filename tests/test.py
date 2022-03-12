@@ -40,7 +40,7 @@ class TestRecallMeMaybe(unittest.TestCase):
 			cm = rng.integers(low=0, high=15, size=(2, 2))
 			print(cm)
 			fig = test_build_waffle_matrix(cols, rows, cm)
-			plt.savefig(f"output/output_{i:001}.png")
+			plt.savefig(f"output/output_{i:001}.svg", bbox_inches='tight')
 
 
 if __name__ == "__main__":
