@@ -3,7 +3,8 @@
 Recall me maybe is an open source, MIT-licensed Python package for plotting recall precision waffle charts from 
 a confusion matrix.
 
-We believe it is a good tool to make precision/recall visually intuitive.
+We believe it is a good tool to make precision/recall visually intuitive and have helpful mental images of your
+model results.
 
 
 ## Installation
