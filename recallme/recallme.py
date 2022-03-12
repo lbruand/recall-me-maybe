@@ -144,12 +144,15 @@ def plot_waffle_matrix(hmap,
     fig.legend(
                 handles=[Patch(color="orange"), 
                          Patch(color="darkgreen"),
+                         Patch(color="white"),
                          Patch(color="lightgrey"),
                          Patch(color="red"),
+                         Patch(color="white"),
                          ],
-                labels=["false negative", "true positive", "true negative", "false positive",  ],
+                labels=["false negative", "true positive", "relevant", "true negative", "false positive",  "irrelevant"],
                 loc='lower left',
-                bbox_to_anchor= (0.07, -0.02),
+                bbox_to_anchor= (0.07, -0.03),
+                edgecolor='k',
                 ncol=2,
                 frameon=False
               )
