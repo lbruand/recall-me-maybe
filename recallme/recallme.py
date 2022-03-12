@@ -61,8 +61,8 @@ def build_waffle_matrix(size,
     return hmap
 
 def subplot_waffle_matrix(ax, 
-						  hmap, 
-                       	  cmap = (mpl.colors.ListedColormap(["#88a770", "darkgreen", "red", "lightgrey"])), 
+						  hmap,
+						  cmap,
                           linewidth=5,
                           linecolor="white"   
                       ):
