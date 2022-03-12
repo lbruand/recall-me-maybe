@@ -11,7 +11,7 @@ import itertools
 def build_waffle_matrix(size, 
 						cm):
     rows, cols = size
-    hmap = np.ones( (rows, cols) )
+    hmap = np.ones( (rows, cols), dtype=int)
     tn, fp, fn, tp = cm.ravel()
     
     fn_tp_boxes = (fn+tp) * cols * rows // sum(cm.ravel())    
