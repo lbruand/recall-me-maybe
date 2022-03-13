@@ -137,15 +137,19 @@ def add_value(ax, value, desc):
              transform=ax.transAxes,
              fontsize=15)    
     
-def plot_waffle_matrix(hmap, 
+def plot_waffle_matrix(hmap,
                        cm=None,
+                       do_plot_prec_recall=True,
                        colormap=dict(enumerate([None, "orange", "darkgreen", "red", "lightgrey"])),
-                      ):
+                       ):
     fig = plt.figure(constrained_layout=False, )
     ymarg = 3.0
-    if cm is not None:
+    if do_plot_prec_recall:
         gs = GridSpec(4, 4, figure=fig)
-        tn, fp, fn, tp = cm.ravel()
+        if cm is None:
+            _, fn, tp, fp, tn = [np.count_nonzero(hmap == x) for x in range(len(colormap))]
+        else:
+            tn, fp, fn, tp = cm.ravel()
         precision = tp / (tp + fp)
         recall = tp / (fn + tp)
 
