@@ -24,7 +24,7 @@ def cascade_rounding(vector:  np.array, size) -> np.array:
 
 
 def build_waffle_matrix(size, 
-						cm):
+                        cm):
     rows, cols = size
     hmap = np.ones( size, dtype=int)
     tn, fp, fn, tp = cm.ravel()
@@ -59,27 +59,30 @@ def build_waffle_matrix(size,
             n += 1
             if hmap[ix, iy] == expected_value:
                 yield ix, iy
-        assert False, "This should not happen - recursionguard"
-                
-    tp_boxes_gen = boxes_generator(direction=-1, expected_value=1)
-    toUpdate = itertools.islice(tp_boxes_gen, tp_boxes)        
-    for xy in toUpdate:
-        ix, iy = xy
-        assert(hmap[ix, iy] == 1)
-        hmap[ix, iy] = 2
-        
-    fp_boxes_gen = boxes_generator(direction=1, expected_value=4)
-    toUpdate = itertools.islice(fp_boxes_gen, fp_boxes)
-    for xy in toUpdate:
-        ix, iy = xy        
-        assert(hmap[ix, iy] == 4)
-        hmap[ix, iy] = 3
+        return # TODO : breaks one : test assert False, "This should not happen - recursionguard"
+
+
+    def update_boxes(hmap, gene, nb_boxes: int, from_cat: int, to_cat: int):
+        toUpdate = itertools.islice(gene, nb_boxes)
+        for xy in toUpdate:
+            ix, iy = xy
+            assert(hmap[ix, iy] == from_cat)
+            hmap[ix, iy] = to_cat
+
+    if tp_boxes > 0:
+        tp_boxes_gen = boxes_generator(direction=-1, expected_value=1)
+        update_boxes(hmap, tp_boxes_gen, tp_boxes, from_cat=1, to_cat=2)
+
+    if fp_boxes > 0:
+        fp_boxes_gen = boxes_generator(direction=1, expected_value=4)
+        update_boxes(hmap, fp_boxes_gen, fp_boxes, from_cat=4, to_cat=3)
+
         
     return hmap
 
 def subplot_waffle_matrix(ax, 
-						  hmap,
-						  cmap,
+                          hmap,
+                          cmap,
                           linewidth=5,
                           linecolor="white"   
                       ):
@@ -112,7 +115,7 @@ def add_value(ax, value, desc):
              fontsize=15)    
     
 def plot_waffle_matrix(hmap, 
-					   cm,
+                       cm,
                        cmap = mpl.colors.ListedColormap(["orange", "darkgreen", "red", "lightgrey"]), 
                        linewidth=5
                       ):

@@ -47,6 +47,7 @@ class TestRecallMeMaybe(unittest.TestCase):
 		random.seed(3)
 		rng = np.random.default_rng(seed=42)
 		for i in range(60):
+			print(f"iter = {i}")
 			cols = random.randint(5, 15)
 			rows = random.randint(5, 15)
 			print( (rows, cols))
