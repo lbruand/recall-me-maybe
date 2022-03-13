@@ -10,7 +10,7 @@ model results.
 ## Installation
 
 ```python
-pip install github
+pip install git+https://github.com/lbruand/recall-me-maybe#egg=recallme
 ```
 
 ## Requirements
