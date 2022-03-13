@@ -165,13 +165,14 @@ def plot_waffle_matrix(hmap,
     axbig.margins(y=ymarg)
     subplot_waffle_matrix(axbig, hmap, colormap=colormap, )
 
+    transparent_color = (1., 1., 1., 0.)
     fig.legend(
-                handles=[Patch(color="orange"), 
-                         Patch(color="darkgreen"),
-                         Patch(color=(1., 1., 1., 0.)),
-                         Patch(color="lightgrey"),
-                         Patch(color="red"),
-                         Patch(color=(1., 1., 1., 0.)),
+                handles=[Patch(color=colormap[1]),
+                         Patch(color=colormap[2]),
+                         Patch(color=transparent_color),
+                         Patch(color=colormap[4]),
+                         Patch(color=colormap[3]),
+                         Patch(color=transparent_color),
                          ],
                 labels=["false negative", "true positive", "relevant", "true negative", "false positive",  "irrelevant"],
                 loc='lower left',
