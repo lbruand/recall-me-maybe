@@ -1,12 +1,17 @@
+from typing import Dict, Tuple, NoReturn, Generator, Optional
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from matplotlib.patches import Patch, Rectangle
 from matplotlib.gridspec import GridSpec
 import numpy as np
 import math
 import itertools
 
-def cascade_rounding(vector:  np.array, size) -> np.array:
+
+def cascade_rounding(vector:  np.array, size: Tuple[int, int]) -> np.array:
     rows, cols = size
     total_boxes = rows * cols
     ratio_vector = vector * total_boxes/ sum(vector)
@@ -19,9 +24,20 @@ def cascade_rounding(vector:  np.array, size) -> np.array:
     return floor_vector + carry
 
 
+def update_boxes(heatmap: np.array,
+                 gene: Generator[Tuple[int, int], None, None],
+                 nb_boxes: int,
+                 from_cat: int,
+                 to_cat: int) -> NoReturn:
+    to_update = itertools.islice(gene, nb_boxes)
+    for xy in to_update:
+        ix, iy = xy
+        assert(heatmap[ix, iy] == from_cat)
+        heatmap[ix, iy] = to_cat
 
-def build_waffle_matrix(size, 
-                        cm):
+
+def build_waffle_matrix(size: Tuple[int, int],
+                        cm: np.array) -> np.array:
     rows, cols = size
     hmap = np.ones( size, dtype=int)
     tn, fp, fn, tp = cm.ravel()
@@ -48,23 +64,14 @@ def build_waffle_matrix(size,
 
     midh = int(math.ceil(h/2))
 
-
-    def boxes_generator(direction=-1, expected_value=1, recursionguard=500):
-        for n in range(recursionguard):
-            ix = min(centerx - midh + (n % (h)), rows - 1)
-            iy = min(centery + direction * (n// (h) - 1), cols - 1)
+    def boxes_generator(direction=-1, expected_value=1, recursion_guard=500) -> Generator[Tuple[int, int], None, None]:
+        for n in range(recursion_guard):
+            ix = min(centerx - midh + (n % h), rows - 1)
+            iy = min(centery + direction * (n // h - 1), cols - 1)
             n += 1
             if hmap[ix, iy] == expected_value:
                 yield ix, iy
         return # TODO : breaks one test (iter=8): assert False, "This should not happen - recursionguard"
-
-
-    def update_boxes(hmap, gene, nb_boxes: int, from_cat: int, to_cat: int):
-        toUpdate = itertools.islice(gene, nb_boxes)
-        for xy in toUpdate:
-            ix, iy = xy
-            assert(hmap[ix, iy] == from_cat)
-            hmap[ix, iy] = to_cat
 
     if tp_boxes > 0:
         tp_boxes_gen = boxes_generator(direction=-1, expected_value=1)
@@ -74,17 +81,17 @@ def build_waffle_matrix(size,
         fp_boxes_gen = boxes_generator(direction=1, expected_value=4)
         update_boxes(hmap, fp_boxes_gen, fp_boxes, from_cat=4, to_cat=3)
 
-        
     return hmap
 
-def subplot_waffle_matrix(ax, 
-                          hmap,
-                          colormap,
+
+def subplot_waffle_matrix(ax: Axes,
+                          hmap: np.array,
+                          colormap: Dict[int, Optional[str]],
                           interval_ratio_x=0.3,
                           interval_ratio_y=0.3,
                           block_aspect_ratio=1.0,
                           facecolor=(1., 1., 1., 0.0)
-                      ):
+                          ) -> Axes:
     rows, cols = hmap.shape
     figure_height = 1
     block_y_length = figure_height / (
@@ -125,23 +132,30 @@ def subplot_waffle_matrix(ax,
     ax.spines['bottom'].set_visible(False)
     ax.spines['left'].set_visible(False)
 
-def add_fraction_bar(ax):
+    return ax
+
+
+def add_fraction_bar(ax: Axes):
     p = plt.Rectangle((-0.1, 1.1), 1.2, 0.01, fill=False)
     p.set_transform(ax.transAxes)
     p.set_clip_on(False)
     ax.add_patch(p)
 
-def add_value(ax, value, desc):
+
+def add_value(ax: Axes, value: float, desc: str):
     ax.text (1.2, 1.05, 
              f' = { 100.0 * value :.1f}% = {desc}', 
              transform=ax.transAxes,
              fontsize=15)    
-    
-def plot_waffle_matrix(hmap,
-                       cm=None,
+
+
+def plot_waffle_matrix(hmap: np.array,
+                       cm: Optional[np.array] = None,
                        do_plot_prec_recall=True,
-                       colormap=dict(enumerate([None, "orange", "darkgreen", "red", "lightgrey"])),
-                       ):
+                       colormap: Dict[int, Optional[str]] = None,
+                       ) -> Figure:
+    if colormap is None:
+        colormap = dict(enumerate([None, "orange", "darkgreen", "red", "lightgrey"]))
     fig = plt.figure(constrained_layout=False, )
     ymarg = 3.0
     if do_plot_prec_recall:
