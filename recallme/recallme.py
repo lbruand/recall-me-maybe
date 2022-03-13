@@ -153,15 +153,9 @@ def plot_waffle_matrix(hmap,
         precision = tp / (tp + fp)
         recall = tp / (fn + tp)
 
-        build_right_figure(hmap, fig, colormap,
-                           "prec",
-                           gs,
-                           {1: None, 4: None}, 0, precision, ymarg)
+        build_right_figure(hmap, fig, colormap, "prec", precision, gs, {1: None, 4: None}, 0, ymarg)
 
-        build_right_figure(hmap, fig, colormap,
-                           "recall",
-                           gs,
-                           {3: None, 4: None}, 2, recall, ymarg)
+        build_right_figure(hmap, fig, colormap, "recall", recall, gs, {3: None, 4: None}, 2, ymarg)
         params = [gs[0:4, 0:3]]
     else:
         params = []
@@ -188,7 +182,7 @@ def plot_waffle_matrix(hmap,
     return fig
 
 
-def build_right_figure(hmap, fig, colormap, desc, gs, override_dict, pos, value, ymarg, small_interval=1.0):
+def build_right_figure(hmap, fig, colormap, desc, value, gs, override_dict, pos, ymarg, small_interval=1.0):
     ax1 = fig.add_subplot(gs[0 + pos, 3])
     subplot_waffle_matrix(ax1, hmap,
                           colormap={**colormap, 1: None, 3: None, 4: None},
