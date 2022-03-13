@@ -1,6 +1,6 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
+from matplotlib.patches import Patch, Rectangle
 from matplotlib.gridspec import GridSpec
 import numpy as np
 import math
@@ -79,21 +79,45 @@ def build_waffle_matrix(size,
 
 def subplot_waffle_matrix(ax, 
                           hmap,
-                          cmap,
-                          linewidth=5,
-                          linecolor="white"   
+                          colormap,
+                          interval_ratio_x=0.3,
+                          interval_ratio_y=0.3,
+                          block_aspect_ratio=1.0,
                       ):
-    im = ax.imshow(hmap, cmap=cmap)
+    rows, cols = hmap.shape
+    figure_height = 1
+    block_y_length = figure_height / (
+        rows + rows * interval_ratio_y - interval_ratio_y
+    )
+    block_x_length = block_aspect_ratio * block_y_length
+    x_full = (1 + interval_ratio_x) * block_x_length
+    y_full = (1 + interval_ratio_y) * block_y_length
+
+    ax.axis(
+            xmin=0,
+            xmax=(
+                cols + cols * interval_ratio_x - interval_ratio_x
+            )
+            * block_x_length,
+            ymin=0,
+            ymax=figure_height,
+        )
+    for ix in range(rows):
+        for iy in range(cols):
+            x = x_full * iy
+            y = y_full * ix
+            category = hmap[ix, iy]
+            color = colormap.get(category, None)
+            if color:
+                ax.add_artist(Rectangle(xy=(x, y), width=block_x_length, height=block_y_length, color=color))
+
+
     ax.set_xlabel(None)
     ax.set_ylabel(None)
-    unitmove = 1.0
+
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_xticks(np.arange(hmap.shape[1]+unitmove)-unitmove/2, minor=True)
-    ax.set_yticks(np.arange(hmap.shape[0]+unitmove)-unitmove/2, minor=True)
     
-    ax.grid(which="minor", color=linecolor, linestyle='-', linewidth=linewidth)
-    ax.tick_params(which="minor", bottom=False, left=False)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['bottom'].set_visible(False)
@@ -113,23 +137,24 @@ def add_value(ax, value, desc):
     
 def plot_waffle_matrix(hmap, 
                        cm,
-                       cmap = mpl.colors.ListedColormap(["orange", "darkgreen", "red", "lightgrey"]), 
-                       linewidth=5
+                       colormap=dict(enumerate([None, "orange", "darkgreen", "red", "lightgrey"])),
                       ):
     ymarg = 3.0
     tn, fp, fn, tp = cm.ravel()
-    fig = plt.figure(constrained_layout=False, facecolor="white")
+    fig = plt.figure(constrained_layout=False,)
     gs = GridSpec(4, 4, figure=fig)
        
     axbig = fig.add_subplot(gs[0:4, 0:3])
     axbig.margins(y=ymarg)
-    subplot_waffle_matrix(axbig, hmap, cmap, linewidth)
+    subplot_waffle_matrix(axbig, hmap, colormap=colormap,)
     
     ax1 = fig.add_subplot(gs[0, 3])
-    
+    small_interval = 1.0
     subplot_waffle_matrix(ax1, hmap, 
-                          mpl.colors.ListedColormap(["white", "darkgreen", "white", "white"]), 
-                          linewidth=2)
+                          colormap={**colormap, 1: None, 3: None, 4: None},
+                          interval_ratio_x=small_interval,
+                          interval_ratio_y=small_interval,
+                          )
     ax1.margins(y=ymarg)
     ax2 = fig.add_subplot(gs[1, 3])
 
@@ -139,32 +164,33 @@ def plot_waffle_matrix(hmap,
     add_value(ax=ax2, value=tp/(tp+fp), desc="prec" )
     
     subplot_waffle_matrix(ax2, hmap, 
-                          mpl.colors.ListedColormap(["white", "darkgreen", "red", "white"]), 
-                          linewidth=2,
-                          linecolor="white")
+                          colormap={**colormap, 1: None, 4: None},
+                          interval_ratio_x=small_interval,
+                          interval_ratio_y=small_interval,)
     ax2.margins(y=ymarg)
     ax3 = fig.add_subplot(gs[2, 3])
     
     subplot_waffle_matrix(ax3, hmap, 
-                          mpl.colors.ListedColormap(["white", "darkgreen", "white", "white"]), 
-                          linewidth=2)
+                          colormap={**colormap, 1: None, 3: None, 4: None},
+                          interval_ratio_x=small_interval,
+                          interval_ratio_y=small_interval,)
 
     ax3.margins(y=ymarg)
     ax4 = fig.add_subplot(gs[3, 3])
     add_fraction_bar(ax4)
     add_value(ax=ax4, value=tp/(fn+tp), desc="recall" )
     subplot_waffle_matrix(ax4, hmap, 
-                          mpl.colors.ListedColormap(["orange", "darkgreen", "white", "white"]), 
-                          linewidth=2,
-                          linecolor="white")    
+                          colormap={**colormap, 3: None, 4: None},
+                          interval_ratio_x=small_interval,
+                          interval_ratio_y=small_interval,)
     ax4.margins(y=ymarg)
     fig.legend(
                 handles=[Patch(color="orange"), 
                          Patch(color="darkgreen"),
-                         Patch(color="white"),
+                         None,
                          Patch(color="lightgrey"),
                          Patch(color="red"),
-                         Patch(color="white"),
+                         None,
                          ],
                 labels=["false negative", "true positive", "relevant", "true negative", "false positive",  "irrelevant"],
                 loc='lower left',
