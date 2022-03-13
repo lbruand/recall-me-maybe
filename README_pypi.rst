@@ -7,7 +7,7 @@ Recall me maybe
 .. image:: https://readthedocs.org/projects/recallme/badge/?version=latest&style=flat
  :target: https://readthedocs.org/projects/recallme/badge/?version=latest&style=flat
 
-.. image:: https://img.shields.io/recallme/run-Online%20Demo-blue
+.. image:: https://img.shields.io/badge/Demo-run%20online-blue
  :target: https://mybinder.org/v2/gh/lbruand/recall-me-maybe/9488d3734f806f2ade1bb8fff4b2d58b96005234?urlpath=lab%2Ftree%2Fprec_waffle.ipynb
 
 Introduction
@@ -24,7 +24,7 @@ Installation
 
 .. code:: bash
 
-    pip install recallme
+    pip install git+https://github.com/lbruand/recall-me-maybe#egg=recallme
 
 Demo
 ----
