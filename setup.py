@@ -33,7 +33,7 @@ setup(
         'Programming Language :: Python :: 3.9'
     ],
     package_data={
-        'pywaffle': []
+        'recallme': []
     },
     include_package_data=True
 )
