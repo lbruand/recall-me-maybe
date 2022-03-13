@@ -59,7 +59,7 @@ def build_waffle_matrix(size,
             n += 1
             if hmap[ix, iy] == expected_value:
                 yield ix, iy
-        return None
+        assert False, "This should not happen - recursionguard"
                 
     tp_boxes_gen = boxes_generator(direction=-1, expected_value=1)
     toUpdate = itertools.islice(tp_boxes_gen, tp_boxes)        
