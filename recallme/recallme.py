@@ -83,6 +83,7 @@ def subplot_waffle_matrix(ax,
                           interval_ratio_x=0.3,
                           interval_ratio_y=0.3,
                           block_aspect_ratio=1.0,
+                          facecolor=(1., 1., 1., 0.0)
                       ):
     rows, cols = hmap.shape
     figure_height = 1
@@ -117,6 +118,8 @@ def subplot_waffle_matrix(ax,
 
     ax.set_xticks([])
     ax.set_yticks([])
+    if facecolor:
+        ax.set_facecolor( facecolor )
     
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
