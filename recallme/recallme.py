@@ -112,7 +112,6 @@ def subplot_waffle_matrix(ax,
             if color:
                 ax.add_artist(Rectangle(xy=(x, y), width=block_x_length, height=block_y_length, color=color))
 
-
     ax.set_xlabel(None)
     ax.set_ylabel(None)
 
@@ -139,54 +138,33 @@ def add_value(ax, value, desc):
              fontsize=15)    
     
 def plot_waffle_matrix(hmap, 
-                       cm,
+                       cm=None,
                        colormap=dict(enumerate([None, "orange", "darkgreen", "red", "lightgrey"])),
                       ):
+    fig = plt.figure(constrained_layout=False, )
     ymarg = 3.0
-    tn, fp, fn, tp = cm.ravel()
-    fig = plt.figure(constrained_layout=False,)
-    gs = GridSpec(4, 4, figure=fig)
-       
-    axbig = fig.add_subplot(gs[0:4, 0:3])
+    if cm is not None:
+        gs = GridSpec(4, 4, figure=fig)
+        tn, fp, fn, tp = cm.ravel()
+        precision = tp / (tp + fp)
+        recall = tp / (fn + tp)
+
+        build_right_figure(hmap, fig, colormap,
+                           "prec",
+                           gs,
+                           {1: None, 4: None}, 0, precision, ymarg)
+
+        build_right_figure(hmap, fig, colormap,
+                           "recall",
+                           gs,
+                           {3: None, 4: None}, 2, recall, ymarg)
+        params = [gs[0:4, 0:3]]
+    else:
+        params = []
+    axbig = fig.add_subplot(*params)
     axbig.margins(y=ymarg)
-    subplot_waffle_matrix(axbig, hmap, colormap=colormap,)
-    
-    ax1 = fig.add_subplot(gs[0, 3])
-    small_interval = 1.0
-    subplot_waffle_matrix(ax1, hmap, 
-                          colormap={**colormap, 1: None, 3: None, 4: None},
-                          interval_ratio_x=small_interval,
-                          interval_ratio_y=small_interval,
-                          )
-    ax1.margins(y=ymarg)
-    ax2 = fig.add_subplot(gs[1, 3])
+    subplot_waffle_matrix(axbig, hmap, colormap=colormap, )
 
-    add_fraction_bar(ax2)
-    
-
-    add_value(ax=ax2, value=tp/(tp+fp), desc="prec" )
-    
-    subplot_waffle_matrix(ax2, hmap, 
-                          colormap={**colormap, 1: None, 4: None},
-                          interval_ratio_x=small_interval,
-                          interval_ratio_y=small_interval,)
-    ax2.margins(y=ymarg)
-    ax3 = fig.add_subplot(gs[2, 3])
-    
-    subplot_waffle_matrix(ax3, hmap, 
-                          colormap={**colormap, 1: None, 3: None, 4: None},
-                          interval_ratio_x=small_interval,
-                          interval_ratio_y=small_interval,)
-
-    ax3.margins(y=ymarg)
-    ax4 = fig.add_subplot(gs[3, 3])
-    add_fraction_bar(ax4)
-    add_value(ax=ax4, value=tp/(fn+tp), desc="recall" )
-    subplot_waffle_matrix(ax4, hmap, 
-                          colormap={**colormap, 3: None, 4: None},
-                          interval_ratio_x=small_interval,
-                          interval_ratio_y=small_interval,)
-    ax4.margins(y=ymarg)
     fig.legend(
                 handles=[Patch(color="orange"), 
                          Patch(color="darkgreen"),
@@ -203,4 +181,21 @@ def plot_waffle_matrix(hmap,
                 frameon=False
               )
     return fig
+
+
+def build_right_figure(hmap, fig, colormap, desc, gs, override_dict, pos, value, ymarg, small_interval=1.0):
+    ax1 = fig.add_subplot(gs[0 + pos, 3])
+    subplot_waffle_matrix(ax1, hmap,
+                          colormap={**colormap, 1: None, 3: None, 4: None},
+                          interval_ratio_x=small_interval,
+                          interval_ratio_y=small_interval, )
+    ax1.margins(y=ymarg)
+    ax2 = fig.add_subplot(gs[1 + pos, 3])
+    add_fraction_bar(ax2)
+    add_value(ax=ax2, value=value, desc=desc)
+    subplot_waffle_matrix(ax2, hmap,
+                          colormap={**colormap, **override_dict},
+                          interval_ratio_x=small_interval,
+                          interval_ratio_y=small_interval, )
+    ax2.margins(y=ymarg)
 
