@@ -59,7 +59,7 @@ def build_waffle_matrix(size,
             n += 1
             if hmap[ix, iy] == expected_value:
                 yield ix, iy
-        return # TODO : breaks one test : assert False, "This should not happen - recursionguard"
+        return # TODO : breaks one test (iter=8): assert False, "This should not happen - recursionguard"
 
 
     def update_boxes(hmap, gene, nb_boxes: int, from_cat: int, to_cat: int):
