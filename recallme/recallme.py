@@ -13,8 +13,7 @@ def cascade_rounding(vector:  np.array, size) -> np.array:
     total_boxes = rows * cols
     ratio_vector = vector * total_boxes/ sum(vector)
     floor_vector = np.floor(ratio_vector).astype(int)
-    roundoff_error = ratio_vector - floor_vector
-    argsort = np.argsort(roundoff_error)
+    argsort = np.argsort(ratio_vector - floor_vector)
     carry = np.zeros(vector.shape, dtype=int)
     for i in range(total_boxes - np.sum(floor_vector)):
         ix = argsort[i]
