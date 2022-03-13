@@ -25,10 +25,23 @@ def test_build_waffle_matrix(cols, rows, cm):
     print(result_counts)
     print(f"counts sum = {sum(result_counts)} - cols x rows = { cols * rows} ")
     max_error = np.max(np.abs(normalized_vect - result_counts))
-    assert max_error < 2.0, f" max_error = {max_error}"
+    assert max_error <= 4.0, f" max_error = {max_error}"
     return fig
 
 class TestRecallMeMaybe(unittest.TestCase):
+	def test_cascade_rounding(self):
+		rng = np.random.default_rng(seed=42)
+		random.seed(3)
+		for i in range(60):
+			input = rng.integers(low=0, high=100, size=(4))
+			size = (random.randint(5, 5), random.randint(5, 25))
+
+			res = recallme.recallme.cascade_rounding(input, size)
+			total_boxes = size[0] * size[1]
+			self.assertEqual(total_boxes, np.sum(res))
+			self.assertTrue( (max(np.abs((total_boxes / sum(input)) * input -res))) <= 1.0 )
+
+
 	def test_recall(self):
 		Path("output").mkdir(parents=True, exist_ok=True)
 		random.seed(3)

@@ -8,41 +8,58 @@ import numpy as np
 import math
 import itertools
 
+def cascade_rounding(vector:  np.array, size) -> np.array:
+    rows, cols = size
+    total_boxes = rows * cols
+    ratio_vector = vector * total_boxes/ sum(vector)
+    floor_vector = np.floor(ratio_vector).astype(int)
+    roundoff_error = ratio_vector - floor_vector
+    argsort = np.argsort(roundoff_error)
+    carry = np.zeros(vector.shape, dtype=int)
+    for i in range(total_boxes - np.sum(floor_vector)):
+        ix = argsort[i]
+        carry[ix] = 1
+    return floor_vector + carry
+
+
+
 def build_waffle_matrix(size, 
 						cm):
     rows, cols = size
-    hmap = np.ones( (rows, cols), dtype=int)
+    hmap = np.ones( size, dtype=int)
     tn, fp, fn, tp = cm.ravel()
     
-    fn_tp_boxes = (fn+tp) * cols * rows // sum(cm.ravel())    
+    vector = np.array([fn, tp, fp, tn])
+    fn_boxes, tp_boxes, fp_boxes, tn_boxes = cascade_rounding(vector, size)
+
+    fn_tp_boxes = fn_boxes + tp_boxes
 
     for n in range(fn_tp_boxes, rows * cols):
         ix = n % rows
         iy = n // rows
         hmap[ix, iy] = 4
     normalize =  rows * cols / sum(cm.ravel())
-    col_ratio = (fn+tp)/sum(cm.ravel())
-    col_part = cols * col_ratio
+
+    col_part = fn_tp_boxes // rows
     h = int(min(
         max( math.ceil(tp/col_part * normalize), 
             math.ceil(fp / (cols - col_part) * normalize ))+1,
         rows))
     
     centerx = int(round(rows / 2))
-    centery = int(round(col_part))
+    centery = col_part
 
     midh = int(math.ceil(h/2))
-    tp_boxes = int(math.floor(tp * cols * rows / sum(cm.ravel())))
-    fp_boxes = int(math.floor(fp * cols * rows / sum(cm.ravel())))
 
-    def boxes_generator(direction=-1, expected_value=1):
-        n = 0
-        while (True):
+
+    def boxes_generator(direction=-1, expected_value=1, recursionguard=500):
+        for n in range(recursionguard):
             ix = min(centerx - midh + (n % (h)), rows - 1)
-            iy = min(centery + direction * (n// (h) -1), cols - 1)
+            iy = min(centery + direction * (n// (h) - 1), cols - 1)
             n += 1
             if hmap[ix, iy] == expected_value:
                 yield ix, iy
+        return None
                 
     tp_boxes_gen = boxes_generator(direction=-1, expected_value=1)
     toUpdate = itertools.islice(tp_boxes_gen, tp_boxes)        
