@@ -51,23 +51,34 @@ def build_waffle_matrix(size: Tuple[int, int],
         ix = n % rows
         iy = n // rows
         hmap[ix, iy] = 4
-    normalize =  rows * cols / sum(cm.ravel())
+    normalize = rows * cols / sum(cm.ravel())
 
     col_part = fn_tp_boxes // rows
+    if col_part - 1 > 0:
+        h_tp = math.ceil(tp_boxes / (col_part - 1))
+    else:
+        h_tp = rows
+
+    if cols - col_part - 1 > 0:
+        h_fp = math.ceil(fp_boxes / (cols - col_part - 1))
+    else:
+        h_fp = rows
+
     h = int(min(
-        max( math.ceil(tp/col_part * normalize), 
-            math.ceil(fp / (cols - col_part) * normalize ))+1,
+        max(
+            h_tp,
+            h_fp)+1,
         rows))
     
     centerx = int(round(rows / 2))
     centery = col_part
 
-    midh = int(math.ceil(h/2))
+    midh = int(math.floor(h/2))
 
     def boxes_generator(direction=-1, expected_value=1, recursion_guard=500) -> Generator[Tuple[int, int], None, None]:
         for n in range(recursion_guard):
-            ix = min(centerx - midh + (n % h), rows - 1)
-            iy = min(centery + direction * (n // h - 1), cols - 1)
+            ix = max(min(centerx - midh + (n % h), rows - 1), 0)
+            iy = max(min(centery + direction * (n // h - 1), cols - 1), 0)
             n += 1
             if hmap[ix, iy] == expected_value:
                 yield ix, iy
