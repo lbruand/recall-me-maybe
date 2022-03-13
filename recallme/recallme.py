@@ -2,8 +2,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.gridspec import GridSpec
-from sklearn.metrics import confusion_matrix
-from pywaffle import Waffle
 import numpy as np
 import math
 import itertools
