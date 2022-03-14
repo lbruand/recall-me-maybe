@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, NoReturn, Generator, Optional
+from typing import Dict, Tuple, NoReturn, Generator, Optional, Callable
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -36,66 +36,55 @@ def update_boxes(heatmap: np.array,
         heatmap[ix, iy] = to_cat
 
 
+def distance_norm_l2(x: np.array, y: np.array) -> np.array:
+    return np.square(x) + np.square(y)
+
+
+def distance_norm_l1(x: np.array, y: np.array) -> np.array:
+    return np.abs(x) + np.abs(y)
+
+
+def distance_norm_linf(x: np.array, y: np.array) -> np.array:
+    return np.maximum(np.abs(x), np.abs(y))
+
+
+def build_distance_field(size: Tuple[int, int], center: Tuple[int, int], norm: Callable[[np.array, np.array], np.array] = distance_norm_l2):
+    x, y = size
+    centerx, centery = center
+    return norm(build_arange_field(x, y, centerx),  np.transpose(build_arange_field(y, x, centery)))
+
+
+def build_arange_field(x, y, center):
+    return np.repeat(np.arange(x), y).reshape((x, y)) - np.ones( (x, y)) * center
+
+
 def build_waffle_matrix(size: Tuple[int, int],
-                        cm: np.array) -> np.array:
+                        cm: np.array,
+                        norm="Linf") -> np.array:
     rows, cols = size
-    hmap = np.ones( size, dtype=int)
     tn, fp, fn, tp = cm.ravel()
-    
-    vector = np.array([fn, tp, fp, tn])
-    fn_boxes, tp_boxes, fp_boxes, tn_boxes = cascade_rounding(vector, size)
 
-    fn_tp_boxes = fn_boxes + tp_boxes
+    fn_boxes, tp_boxes, fp_boxes, tn_boxes = cascade_rounding(np.array([fn, tp, fp, tn]), size)
 
-    for n in range(fn_tp_boxes, rows * cols):
-        ix = n % rows
-        iy = n // rows
-        hmap[ix, iy] = 4
-    normalize = rows * cols / sum(cm.ravel())
+    hmap = np.where(np.arange(rows * cols) < fn_boxes + tp_boxes, 1, 4).reshape(size, order='F')
 
-    # TODO : Tedious code. What come next could be easily
-    #        replaced by distanced based minimisation to 
-    #        choose which point to change. 
-    col_part = fn_tp_boxes // rows
-    if col_part - 1 > 0:
-        h_tp = math.ceil(tp_boxes / (col_part - 1))
-    else:
-        h_tp = rows
-
-    if cols - col_part - 1 > 0:
-        h_fp = math.ceil(fp_boxes / (cols - col_part - 1))
-    else:
-        h_fp = rows
-
-    h = int(min(
-        max(
-            h_tp,
-            h_fp)+1,
-        rows))
-    
-    centerx = int(round(rows / 2))
-    centery = col_part
-
-    midh = int(math.floor(h/2))
-
-    def boxes_generator(direction=-1, expected_value=1, recursion_guard=500) -> Generator[Tuple[int, int], None, None]:
-        for n in range(recursion_guard):
-            ix = max(min(centerx - midh + (n % h), rows - 1), 0)
-            iy = max(min(centery + direction * (n // h - 1), cols - 1), 0)
-            n += 1
-            if hmap[ix, iy] == expected_value:
-                yield ix, iy
-        return # TODO : breaks one test (iter=8): assert False, "This should not happen - recursionguard"
-
+    center = ((int(round(rows / 2))),
+              ((fn_boxes + tp_boxes) // rows))
+    normfunc_dict = {
+        "Linf": distance_norm_linf,
+        "L2": distance_norm_l2,
+        "L1": distance_norm_l1,
+    }
+    normfunc = normfunc_dict.get(norm, distance_norm_linf)
     if tp_boxes > 0:
-        tp_boxes_gen = boxes_generator(direction=-1, expected_value=1)
-        update_boxes(hmap, tp_boxes_gen, tp_boxes, from_cat=1, to_cat=2)
-
+        result = update_boxes_using_distance_from_center(hmap, 1, 2, center, tp_boxes, norm=normfunc)
+    else:
+        result = hmap
     if fp_boxes > 0:
-        fp_boxes_gen = boxes_generator(direction=1, expected_value=4)
-        update_boxes(hmap, fp_boxes_gen, fp_boxes, from_cat=4, to_cat=3)
-
-    return hmap
+        result2 = update_boxes_using_distance_from_center(result, 4, 3, center, fp_boxes, norm=normfunc)
+    else:
+        result2 = result
+    return result2
 
 
 def subplot_waffle_matrix(ax: Axes,
@@ -226,3 +215,19 @@ def build_right_figure(hmap, fig, colormap, desc, value, gs, override_dict, pos,
                           interval_ratio_y=small_interval, )
     ax2.margins(y=ymarg)
 
+
+def update_boxes_using_distance_from_center(hmap: np.array,
+                                            fromcat: int,
+                                            tocat: int,
+                                            center: Tuple[int, int],
+                                            nb_boxes: int,
+                                            norm: Callable[[np.array, np.array], np.array] = distance_norm_linf):
+    size = np.shape(hmap)
+    distance_field = build_distance_field(size, center, norm=norm)
+    d = np.where(hmap == fromcat, distance_field, np.nan * np.ones(size))
+    ravel = d.ravel()
+    aravel = hmap.ravel()
+    sorted = np.argsort(ravel)
+    for i in range(nb_boxes):
+        aravel[sorted[i]] = tocat
+    return aravel.reshape(size)

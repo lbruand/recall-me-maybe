@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # -*-coding: utf-8 -*-
 
-import os
 import unittest
 import recallme.recallme
 import matplotlib.pyplot as plt
 import random
 import numpy as np
 from pathlib import Path
+
+from recallme.recallme import update_boxes_using_distance_from_center
 
 
 def test_build_waffle_matrix(cols, rows, cm, test_cm=True):
@@ -26,11 +27,32 @@ def test_build_waffle_matrix(cols, rows, cm, test_cm=True):
     print(result_counts)
     print(f"counts sum = {sum(result_counts)} - cols x rows = { cols * rows} ")
     max_error = np.max(np.abs(normalized_vect - result_counts))
-    assert max_error <= 4.0, f" max_error = {max_error}"
+    assert max_error <= 1.01, f" max_error = {max_error}"
     return fig
 
 
 class TestRecallMeMaybe(unittest.TestCase):
+
+    def test_distance_field(self):
+        res = recallme.recallme.build_distance_field( (5, 7), (2, 3))
+        print(res)
+        self.assertEqual(0.0, res[ 2, 3])
+
+    def test_distance_field_with_cat(self):
+
+        size = (5, 7)
+        catstart = 1
+        catend = 4
+        hmap = (catend - 1) * (np.repeat(np.arange(size[0]), size[1]).reshape(size) < 3) + catstart
+        nb_boxes = 7
+        center = (2, 3)
+
+        result = update_boxes_using_distance_from_center(hmap, catend, 3, center, 7)
+        self.assertEqual(nb_boxes, np.sum(result == 3))
+        result2 = update_boxes_using_distance_from_center(result, catstart, 2, center, 9)
+        self.assertEqual(7, np.sum(result2 == 3))
+        self.assertEqual(9, np.sum(result2 == 2))
+        print(result)
 
     def test_cascade_rounding(self):
         rng = np.random.default_rng(seed=42)
