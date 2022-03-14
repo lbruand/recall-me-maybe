@@ -53,6 +53,9 @@ def build_waffle_matrix(size: Tuple[int, int],
         hmap[ix, iy] = 4
     normalize = rows * cols / sum(cm.ravel())
 
+    # TODO : Tedious code. What come next could be easily
+    #        replaced by distanced based minimisation to 
+    #        choose which point to change. 
     col_part = fn_tp_boxes // rows
     if col_part - 1 > 0:
         h_tp = math.ceil(tp_boxes / (col_part - 1))
