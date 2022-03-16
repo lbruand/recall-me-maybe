@@ -61,6 +61,7 @@ def build_arange_field(x, y, center):
 def build_waffle_matrix_from_confusion_matrix(size: Tuple[int, int],
                                               cm: np.array,
                                               norm="Linf") -> np.array:
+    assert cm.shape == (2, 2)
     rows, cols = size
     tn, fp, fn, tp = cm.ravel()
 
