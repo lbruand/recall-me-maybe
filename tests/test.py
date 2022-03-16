@@ -33,6 +33,11 @@ def test_build_waffle_matrix(cols, rows, cm, test_cm=True):
 
 class TestRecallMeMaybe(unittest.TestCase):
 
+    def test_snake_matrix(self):
+        res = recallme.recallme.build_snake_matrix_from_value_counts( (20, 3), {1: 17, 2: 34})
+        self.assertEqual(17, np.sum(res == 1))
+        self.assertEqual(34, np.sum(res == 2))
+
     def test_distance_field(self):
         res = recallme.recallme.build_distance_field( (5, 7), (2, 3))
         print(res)
