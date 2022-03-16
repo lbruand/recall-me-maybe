@@ -58,9 +58,9 @@ def build_arange_field(x, y, center):
     return np.repeat(np.arange(x), y).reshape((x, y)) - np.ones( (x, y)) * center
 
 
-def build_waffle_matrix(size: Tuple[int, int],
-                        cm: np.array,
-                        norm="Linf") -> np.array:
+def build_waffle_matrix_from_confusion_matrix(size: Tuple[int, int],
+                                              cm: np.array,
+                                              norm="Linf") -> np.array:
     rows, cols = size
     tn, fp, fn, tp = cm.ravel()
 

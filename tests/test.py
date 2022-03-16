@@ -12,7 +12,7 @@ from recallme.recallme import update_boxes_using_distance_from_center
 
 
 def test_build_waffle_matrix(cols, rows, cm, test_cm=True):
-    hmap = recallme.recallme.build_waffle_matrix( (rows, cols), cm)
+    hmap = recallme.recallme.build_waffle_matrix_from_confusion_matrix((rows, cols), cm)
     fig = recallme.recallme.plot_waffle_matrix(hmap, cm=cm if test_cm else None)
     tn, fp, fn, tp = cm.ravel()
     values, counts = np.unique(hmap, return_counts=True)

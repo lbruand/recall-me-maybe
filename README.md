@@ -31,7 +31,7 @@ import numpy as np
 
 cm = np.array([[4, 1],
                [2, 2]])
-hmap = recallme.recallme.build_waffle_matrix( (10, 10), cm)
+hmap = recallme.recallme.build_waffle_matrix_from_confusion_matrix((10, 10), cm)
 fig = recallme.recallme.plot_waffle_matrix(hmap, cm)
 fig.savefig("output/recall-me-maybe.svg", bbox_inches='tight')
 ```
