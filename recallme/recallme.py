@@ -180,7 +180,7 @@ def plot_waffle_matrix(hmap: np.array,
     fig = plt.figure(constrained_layout=False, )
     ymarg = 3.0
     if do_plot_prec_recall:
-        gs = GridSpec(4, 5, figure=fig)
+        gs = GridSpec(4, 10, figure=fig)
         if cm is None:
             _, fn, tp, fp, tn = [np.count_nonzero(hmap == x) for x in range(len(colormap))]
         else:
@@ -191,7 +191,7 @@ def plot_waffle_matrix(hmap: np.array,
         build_right_figure(hmap, fig, colormap, "prec", precision, gs, 1, 0, ymarg)
 
         build_right_figure(hmap, fig, colormap, "recall", recall, gs, 3, 2, ymarg)
-        params = [gs[0:4, 0:3]]
+        params = [gs[0:4, 0:6]]
     else:
         params = []
     axbig = fig.add_subplot(*params)
@@ -209,7 +209,7 @@ def plot_waffle_matrix(hmap: np.array,
                          ],
                 labels=["false negative", "true positive", "relevant", "true negative", "false positive",  "irrelevant"],
                 loc='lower left',
-                bbox_to_anchor= (0.07, -0.03),
+                bbox_to_anchor= (0.07, -0.05),
                 edgecolor='k',
                 ncol=2,
                 frameon=False
@@ -220,7 +220,7 @@ def plot_waffle_matrix(hmap: np.array,
 def build_right_figure(hmap, fig, colormap, desc, value, gs, override_value, pos, ymarg, small_interval=1.0):
     override_dict = {override_value: None, 4: None}
     count_value = 1 if override_value == 3 else 3
-    recap_frac_ax = fig.add_subplot(gs[0 + pos: 2 + pos, 3])
+    recap_frac_ax = fig.add_subplot(gs[0 + pos: 2 + pos, 6])
     value_counts = { 2: np.sum(hmap == 2), count_value: np.sum(hmap == count_value),   }
     total = sum(value_counts.values())
     nb_cols = min(hmap.shape) // 2
@@ -232,16 +232,16 @@ def build_right_figure(hmap, fig, colormap, desc, value, gs, override_value, pos
                           interval_ratio_y=small_interval,
                           adjust_height=1.4)
     recap_frac_ax.set_title(f"{desc}\n{ 100.0 * value :.1f}%", y=0.7)
-    recap_frac_ax.margins(y=ymarg)
+    recap_frac_ax.margins(x=1., y=ymarg)
 
-    top_frac_ax = fig.add_subplot(gs[0 + pos, 4])
+    top_frac_ax = fig.add_subplot(gs[0 + pos, 7:9])
     subplot_waffle_matrix(top_frac_ax, hmap,
                           colormap={**colormap, 1: None, 3: None, 4: None},
                           interval_ratio_x=small_interval,
                           interval_ratio_y=small_interval, )
     top_frac_ax.margins(y=ymarg)
 
-    bottom_frac_ax = fig.add_subplot(gs[1 + pos, 4])
+    bottom_frac_ax = fig.add_subplot(gs[1 + pos, 7:9])
     add_fraction_bar(bottom_frac_ax)
     #add_value(ax=bottom_frac_ax, value=value, desc=desc)
     subplot_waffle_matrix(bottom_frac_ax, hmap,
