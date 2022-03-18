@@ -182,7 +182,7 @@ def plot_waffle_matrix(hmap: np.array,
         precision = tp / (tp + fp)
         recall = tp / (fn + tp)
 
-        build_right_figure(hmap, fig, colormap, "prec", precision, gs, 1, 0, ymarg)
+        build_right_figure(hmap, fig, colormap, "prec", precision, gs, 1, 0, ymarg, show_fraction=show_fraction)
 
         build_right_figure(hmap, fig, colormap, "recall", recall, gs, 3, 2, ymarg, show_fraction=show_fraction)
         if show_fraction:
