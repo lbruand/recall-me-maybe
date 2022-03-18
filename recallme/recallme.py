@@ -76,7 +76,7 @@ def build_snake_matrix_from_value_counts(size: Tuple[int, int],
 
 def build_waffle_matrix_from_confusion_matrix(size: Tuple[int, int],
                                               cm: np.array,
-                                              norm="Linf") -> np.array:
+                                              norm="Linf",) -> np.array:
     assert cm.shape == (2, 2)
     rows, cols = size
     tn, fp, fn, tp = cm.ravel()
@@ -157,30 +157,24 @@ def subplot_waffle_matrix(ax: Axes,
 
 
 def add_fraction_bar(ax: Axes):
-    p = plt.Rectangle((-0.1, 1.1), 1.2, 0.01, fill=False)
+    p = plt.Rectangle((-0.05, 1.1), 1.2, 0.01, fill=False)
     p.set_transform(ax.transAxes)
     p.set_clip_on(False)
     ax.add_patch(p)
-
-
-def add_value(ax: Axes, value: float, desc: str):
-    ax.text (1.2, 1.05, 
-             f' = { 100.0 * value :.1f}% = {desc}', 
-             transform=ax.transAxes,
-             fontsize=15)    
 
 
 def plot_waffle_matrix(hmap: np.array,
                        cm: Optional[np.array] = None,
                        do_plot_prec_recall=True,
                        colormap: Dict[int, Optional[str]] = None,
+                       show_fraction=False
                        ) -> Figure:
     if colormap is None:
         colormap = dict(enumerate([None, "orange", "darkgreen", "red", "lightgrey"]))
     fig = plt.figure(constrained_layout=False, )
     ymarg = 3.0
     if do_plot_prec_recall:
-        gs = GridSpec(4, 10, figure=fig)
+        gs = GridSpec(4, 10 if show_fraction else 7, figure=fig)
         if cm is None:
             _, fn, tp, fp, tn = [np.count_nonzero(hmap == x) for x in range(len(colormap))]
         else:
@@ -190,8 +184,11 @@ def plot_waffle_matrix(hmap: np.array,
 
         build_right_figure(hmap, fig, colormap, "prec", precision, gs, 1, 0, ymarg)
 
-        build_right_figure(hmap, fig, colormap, "recall", recall, gs, 3, 2, ymarg)
-        params = [gs[0:4, 0:6]]
+        build_right_figure(hmap, fig, colormap, "recall", recall, gs, 3, 2, ymarg, show_fraction=show_fraction)
+        if show_fraction:
+            params = [gs[0:4, 0:6]]
+        else:
+            params = [gs[0:4, 0:6]]
     else:
         params = []
     axbig = fig.add_subplot(*params)
@@ -217,14 +214,16 @@ def plot_waffle_matrix(hmap: np.array,
     return fig
 
 
-def build_right_figure(hmap, fig, colormap, desc, value, gs, override_value, pos, ymarg, small_interval=1.0):
+def build_right_figure(hmap, fig, colormap, desc, value, gs, override_value, pos, ymarg, small_interval=1.0,
+                       show_fraction=False):
+    rows, cols = hmap.shape
     override_dict = {override_value: None, 4: None}
     count_value = 1 if override_value == 3 else 3
     recap_frac_ax = fig.add_subplot(gs[0 + pos: 2 + pos, 6])
     value_counts = { 2: np.sum(hmap == 2), count_value: np.sum(hmap == count_value),   }
     total = sum(value_counts.values())
-    nb_cols = min(hmap.shape) // 2
-    snake_map = build_snake_matrix_from_value_counts( (int(math.ceil(total / nb_cols)), nb_cols, ), value_counts=value_counts)
+    nb_cols_rect_matrix = int(math.ceil(math.sqrt(rows * cols / 16)))
+    snake_map = build_snake_matrix_from_value_counts( (int(math.ceil(total / nb_cols_rect_matrix)), nb_cols_rect_matrix, ), value_counts=value_counts)
     color_map = {**colormap, **override_dict}
     subplot_waffle_matrix(recap_frac_ax, snake_map,
                           colormap=color_map,
@@ -233,22 +232,22 @@ def build_right_figure(hmap, fig, colormap, desc, value, gs, override_value, pos
                           adjust_height=1.4)
     recap_frac_ax.set_title(f"{desc}\n{ 100.0 * value :.1f}%", y=0.7)
     recap_frac_ax.margins(x=1., y=ymarg)
+    if show_fraction:
+        top_frac_ax = fig.add_subplot(gs[0 + pos, 7:9])
+        subplot_waffle_matrix(top_frac_ax, hmap,
+                              colormap={**colormap, 1: None, 3: None, 4: None},
+                              interval_ratio_x=small_interval,
+                              interval_ratio_y=small_interval, )
+        top_frac_ax.margins(y=ymarg)
 
-    top_frac_ax = fig.add_subplot(gs[0 + pos, 7:9])
-    subplot_waffle_matrix(top_frac_ax, hmap,
-                          colormap={**colormap, 1: None, 3: None, 4: None},
-                          interval_ratio_x=small_interval,
-                          interval_ratio_y=small_interval, )
-    top_frac_ax.margins(y=ymarg)
+        bottom_frac_ax = fig.add_subplot(gs[1 + pos, 7:9])
+        add_fraction_bar(bottom_frac_ax)
 
-    bottom_frac_ax = fig.add_subplot(gs[1 + pos, 7:9])
-    add_fraction_bar(bottom_frac_ax)
-    #add_value(ax=bottom_frac_ax, value=value, desc=desc)
-    subplot_waffle_matrix(bottom_frac_ax, hmap,
-                          colormap={**colormap, **override_dict},
-                          interval_ratio_x=small_interval,
-                          interval_ratio_y=small_interval, )
-    bottom_frac_ax.margins(y=ymarg)
+        subplot_waffle_matrix(bottom_frac_ax, hmap,
+                              colormap={**colormap, **override_dict},
+                              interval_ratio_x=small_interval,
+                              interval_ratio_y=small_interval, )
+        bottom_frac_ax.margins(y=ymarg)
 
 
 def update_boxes_using_distance_from_center(hmap: np.array,
