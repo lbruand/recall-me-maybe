@@ -24,18 +24,6 @@ def cascade_rounding(vector:  np.array, size: Tuple[int, int]) -> np.array:
     return floor_vector + carry
 
 
-def update_boxes(heatmap: np.array,
-                 gene: Generator[Tuple[int, int], None, None],
-                 nb_boxes: int,
-                 from_cat: int,
-                 to_cat: int) -> NoReturn:
-    to_update = itertools.islice(gene, nb_boxes)
-    for xy in to_update:
-        ix, iy = xy
-        assert(heatmap[ix, iy] == from_cat)
-        heatmap[ix, iy] = to_cat
-
-
 def distance_norm_l2(x: np.array, y: np.array) -> np.array:
     return np.square(x) + np.square(y)
 
