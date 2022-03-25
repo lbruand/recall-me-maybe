@@ -25,7 +25,7 @@ def cascade_rounding(vector:  np.array, size: Tuple[int, int]) -> np.array:
 
 
 def distance_norm_l2(x: np.array, y: np.array) -> np.array:
-    return np.square(x) + np.square(y)
+    return np.square(x) + np.square(y) + 0.025 * np.abs(x) + 0.0025 * np.abs(y)
 
 
 def distance_norm_l1(x: np.array, y: np.array) -> np.array:
@@ -33,7 +33,7 @@ def distance_norm_l1(x: np.array, y: np.array) -> np.array:
 
 
 def distance_norm_linf(x: np.array, y: np.array) -> np.array:
-    return np.maximum(np.abs(x), np.abs(y))
+    return np.maximum(np.abs(x), np.abs(y)) + 0.025 * np.abs(x) + 0.0025 * np.abs(y)
 
 
 def build_distance_field(size: Tuple[int, int], center: Tuple[int, int], norm: Callable[[np.array, np.array], np.array] = distance_norm_l2):
